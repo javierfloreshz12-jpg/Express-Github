@@ -1,7 +1,6 @@
 const express = require('express');
 const pool = require('./db');
 const app = express();
-
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -18,14 +17,27 @@ app.get('/alumnos', async (req, res) => {
   }
 });
 
-app.get('/materia', async (req, res) => {
+app.get('/alumnos/:id', async (req, res) => {
   try {
-    const resultado = await pool.query('SELECT * FROM materia');
-    res.json(resultado.rows);
+    const { id } = req.params;
+
+    if (isNaN(id) || id.trim() === '') {
+      return res.status(400).json({ error: 'El id debe ser un número válido' });
+    }
+
+    const resultado = await pool.query(
+      'SELECT * FROM alumno WHERE id = $1',
+      [id]
+    );
+
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ error: 'Alumno no encontrado' });
+    }
+
+    res.json(resultado.rows[0]);
   } catch (error) {
-    console.error('Error al consultar materias:', error);
-    res.status(500).json({ 
-      error: 'Error al obtener las materias',});
+    console.error(' Error al consultar alumno:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
@@ -52,11 +64,42 @@ app.post('/alumnos', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Servidor corriendo en http://localhost:3000');
+app.get('/materias', async (req, res) => {
+  try {
+    const resultado = await pool.query('SELECT * FROM materia');
+    res.json(resultado.rows);
+  } catch (error) {
+    console.error('Error al consultar materias:', error);
+    res.status(500).json({ 
+      error: 'Error al obtener las materias',});
+  }
 });
 
-app.post('/materia', async (req, res) => {
+app.get('/materias/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (isNaN(id) || id.trim() === '') {
+      return res.status(400).json({ error: 'El id debe ser un número válido' });
+    }
+
+    const resultado = await pool.query(
+      'SELECT * FROM materia WHERE id = $1',
+      [id]
+    );
+
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ error: 'Materia no encontrada' });
+    }
+
+    res.json(resultado.rows[0]);
+  } catch (error) {
+    console.error('Error al consultar materia:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+app.post('/materias', async (req, res) => {
   try {
     const { nombre, semestre, creditos } = req.body;
 
@@ -81,4 +124,8 @@ app.post('/materia', async (req, res) => {
     res.status(500).json({ 
       error: 'Error al insertar la materia',});
   }
+});
+
+app.listen(3000, () => {
+  console.log('Servidor corriendo en http://localhost:3000');
 });
