@@ -1,6 +1,5 @@
 const express = require("express");
 const connectMongoDB = require("./mongoConnection");
-
 const app = express();
 
 app.use(express.json());
@@ -61,3 +60,6 @@ app.post("/api/createVehiculo", async (req, res) => {
 });
 
 connectMongoDB();
+app.listen(3000, () => {
+  console.log('Servidor corriendo en http://localhost:3000');
+});
